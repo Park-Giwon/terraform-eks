@@ -5,8 +5,8 @@ terraform {
   }
  }
 }
-resource "aws_iam_role" "terraform-eks-iam-role" {
- name = "terraform-eks-terraform-iam-role"
+resource "aws_iam_role" "terraform-ontheair-eks-iam-role" {
+ name = "terraform-ontheair-eks-terraform-iam-role"
 
  path = "/"
 
@@ -28,27 +28,27 @@ EOF
 }
 resource "aws_iam_role_policy_attachment" "AmazonEKSClusterPolicy" {
  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
- role    = aws_iam_role.terraform-eks-iam-role.name
+ role    = aws_iam_role.terraform-ontheair-eks-iam-role.name
 }
 resource "aws_iam_role_policy_attachment" "AmazonEC2ContainerRegistryReadOnly-EKS" {
  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
- role    = aws_iam_role.terraform-eks-iam-role.name
+ role    = aws_iam_role.terraform-ontheair-eks-iam-role.name
 }
 resource "aws_eks_cluster" "ontheair-eks" {
  name = "ontheair-cluster"
- version = "1.19"
- role_arn = aws_iam_role.terraform-eks-iam-role.arn
+ version = "1.21"
+ role_arn = aws_iam_role.terraform-ontheair-eks-iam-role.arn
 
  vpc_config {
   subnet_ids = [var.subnet_id_1, var.subnet_id_2]
  }
 
  depends_on = [
-  aws_iam_role.terraform-eks-iam-role,
+  aws_iam_role.terraform-ontheair-eks-iam-role,
  ]
 }
 resource "aws_iam_role" "workernodes" {
-  name = "terraform-eks-node-group-iam-role"
+  name = "terraform-ontheair-eks-node-group-iam-role"
 
   assume_role_policy = jsonencode({
    Statement = [{
@@ -89,9 +89,9 @@ resource "aws_iam_role" "workernodes" {
   instance_types = ["t2.small"]
 
   scaling_config {
-   desired_size = 2
+   desired_size = 3
    max_size   = 5
-   min_size   = 2
+   min_size   = 3
   }
 
   depends_on = [
@@ -106,7 +106,7 @@ resource "aws_iam_role" "workernodes" {
   node_group_name = "monitoring-ontheair-workernodes"
   node_role_arn  = aws_iam_role.workernodes.arn
   subnet_ids   = [var.subnet_id_1, var.subnet_id_2]
-  instance_types = ["t2.medium"]
+  instance_types = ["t2.small"]
   taint {
     key = "hi"
     value = "hello"
